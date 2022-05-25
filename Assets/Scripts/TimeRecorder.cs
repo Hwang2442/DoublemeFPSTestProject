@@ -2,45 +2,48 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-public class TimeRecorder : MonoBehaviour
+namespace FPS
 {
-    public float RecordingTime { get; private set; }
-
-    Coroutine m_coroutine;
-
-    public void StartRecording(UnityAction<float> onUpdate)
+    public class TimeRecorder : MonoBehaviour
     {
-        if (m_coroutine != null)
-        {
-            Debug.LogWarning("Already recording...");
+        public float RecordingTime { get; private set; }
 
-            return;
+        Coroutine m_coroutine;
+
+        public void StartRecording(UnityAction<float> onUpdate)
+        {
+            if (m_coroutine != null)
+            {
+                Debug.LogWarning("Already recording...");
+
+                return;
+            }
+
+            RecordingTime = 0;
+            m_coroutine = StartCoroutine(Co_TimeRecording(onUpdate));
         }
 
-        RecordingTime = 0;
-        m_coroutine = StartCoroutine(Co_TimeRecording(onUpdate));
-    }
-
-    public void StopRecording()
-    {
-        if (m_coroutine == null)
+        public void StopRecording()
         {
-            Debug.LogWarning("Not recording...");
+            if (m_coroutine == null)
+            {
+                Debug.LogWarning("Not recording...");
 
-            return;
+                return;
+            }
+
+            StopCoroutine(m_coroutine);
         }
 
-        StopCoroutine(m_coroutine);
-    }
-
-    private IEnumerator Co_TimeRecording(UnityAction<float> onUpdate)
-    {
-        while (true)
+        private IEnumerator Co_TimeRecording(UnityAction<float> onUpdate)
         {
-            yield return null;
+            while (true)
+            {
+                yield return null;
 
-            RecordingTime += Time.deltaTime;
-            onUpdate?.Invoke(RecordingTime);
+                RecordingTime += Time.deltaTime;
+                onUpdate?.Invoke(RecordingTime);
+            }
         }
     }
 }
