@@ -6,6 +6,8 @@ namespace FPS
 {
     public class GameManager : MonoBehaviour
     {
+        [SerializeField] PlayerController m_player;
+
         private void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;

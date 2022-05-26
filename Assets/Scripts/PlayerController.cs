@@ -14,8 +14,13 @@ namespace FPS
 
         [Header("Movement")]
         [SerializeField] CharacterController m_controller;
-        [SerializeField] float m_speed = 10;
+        [SerializeField] float m_walkSpeed = 10;
+        [SerializeField] float m_runSpeed = 15;
         [SerializeField] float m_jumpPower = 10;
+
+        [Header("Weapon")]
+        [SerializeField] int m_curWeaponIndex = 0;
+        [SerializeField] WeaponController[] m_weapons;
 
         float m_xRotation = 0;
         Vector3 m_gravityVelocity;
@@ -45,14 +50,20 @@ namespace FPS
         private void Movement()
         {
             bool isGrounded = GroundCheck();
+            bool isRun = Input.GetKey(KeyCode.LeftShift);
 
             if (isGrounded && m_gravityVelocity.y < 0) m_gravityVelocity.y = 0;
 
             float x = Input.GetAxis("Horizontal");
             float z = Input.GetAxis("Vertical");
 
+            // Play walk and run animation.
+            m_weapons[m_curWeaponIndex].Walk(Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)));
+            m_weapons[m_curWeaponIndex].Run(isRun);
+
+            // Move
             Vector3 direction = transform.forward * z + transform.right * x;
-            m_controller.Move(direction * m_speed * Time.deltaTime);
+            m_controller.Move(direction * (isRun ? m_runSpeed : m_walkSpeed) * Time.deltaTime);
 
             // Jump
             if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
