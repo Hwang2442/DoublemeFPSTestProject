@@ -8,17 +8,17 @@ namespace FPS
     {
         [SerializeField] Transform m_body;
 
-        [Header("Camera")]
+        [Header("Camera settings")]
         [SerializeField] Camera m_camera;
         [SerializeField] float m_cameraSensivity = 100;
 
-        [Header("Movement")]
+        [Header("Movement settings")]
         [SerializeField] CharacterController m_controller;
         [SerializeField] float m_walkSpeed = 10;
         [SerializeField] float m_runSpeed = 15;
         [SerializeField] float m_jumpPower = 10;
 
-        [Header("Weapon")]
+        [Header("Weapon settings")]
         [SerializeField] int m_curWeaponIndex = 0;
         [SerializeField] WeaponController[] m_weapons;
 
@@ -33,6 +33,22 @@ namespace FPS
         private void Update()
         {
             Movement();
+            MouseInteraction();
+        }
+
+        private void MouseInteraction()
+        {
+            // attack start.
+            if (Input.GetMouseButtonDown(0))
+            {
+                m_weapons[m_curWeaponIndex].PlayAttackAnimation(true);
+            }
+            // attack end.
+            else if (Input.GetMouseButtonUp(0))
+            {
+                m_weapons[m_curWeaponIndex].PlayAttackAnimation(false);
+            }
+
             CameraUpdate();
         }
 
@@ -57,9 +73,9 @@ namespace FPS
             float x = Input.GetAxis("Horizontal");
             float z = Input.GetAxis("Vertical");
 
-            // Play walk and run animation.
-            m_weapons[m_curWeaponIndex].Walk(Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)));
-            m_weapons[m_curWeaponIndex].Run(isRun);
+            // Play walk or run animation.
+            m_weapons[m_curWeaponIndex].PlayWalkAniamtion(Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)));
+            m_weapons[m_curWeaponIndex].PlayRunAnimation(isRun);
 
             // Move
             Vector3 direction = transform.forward * z + transform.right * x;
@@ -76,9 +92,18 @@ namespace FPS
             m_controller.Move(m_gravityVelocity * Time.deltaTime);
         }
 
+        
+
         private bool GroundCheck()
         {
             return Physics.Raycast(transform.position, Vector3.down, 0.1f);
+        }
+
+        private void OnDrawGizmos()
+        {
+            // Ground check.
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * 0.1f);
         }
     }
 }
