@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace FPS
 {
@@ -25,6 +26,12 @@ namespace FPS
         float m_xRotation = 0;
         Vector3 m_gravityVelocity;
 
+        #region Properties
+
+        public WeaponController CurrentWeapon => m_weapons[m_curWeaponIndex];
+
+        #endregion
+
         private void Awake()
         {
             
@@ -32,7 +39,7 @@ namespace FPS
 
         private void Update()
         {
-            Movement();
+            KeyboardInteraction();
             MouseInteraction();
         }
 
@@ -41,15 +48,37 @@ namespace FPS
             // attack start.
             if (Input.GetMouseButtonDown(0))
             {
-                m_weapons[m_curWeaponIndex].PlayAttackAnimation(true);
+                CurrentWeapon.PlayAttackAnimation(true);
             }
             // attack end.
             else if (Input.GetMouseButtonUp(0))
             {
-                m_weapons[m_curWeaponIndex].PlayAttackAnimation(false);
+                CurrentWeapon.PlayAttackAnimation(false);
             }
 
             CameraUpdate();
+        }
+
+        private void KeyboardInteraction()
+        {
+            Movement();
+
+            // Reload
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                CurrentWeapon.PlayReloadAnimation();
+            }
+
+            // Weapon change.
+            foreach (var weapon in m_weapons)
+            {
+                if (Input.GetKeyDown(weapon.InstallKey))
+                {
+
+
+                    break;
+                }
+            }
         }
 
         private void CameraUpdate()
@@ -74,8 +103,8 @@ namespace FPS
             float z = Input.GetAxis("Vertical");
 
             // Play walk or run animation.
-            m_weapons[m_curWeaponIndex].PlayWalkAniamtion(Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)));
-            m_weapons[m_curWeaponIndex].PlayRunAnimation(isRun);
+            CurrentWeapon.PlayWalkAniamtion(Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)));
+            CurrentWeapon.PlayRunAnimation(isRun);
 
             // Move
             Vector3 direction = transform.forward * z + transform.right * x;
@@ -91,8 +120,6 @@ namespace FPS
             m_gravityVelocity += Physics.gravity * Time.deltaTime;
             m_controller.Move(m_gravityVelocity * Time.deltaTime);
         }
-
-        
 
         private bool GroundCheck()
         {
