@@ -95,6 +95,7 @@ namespace FPS
 
         public void Attack()
         {
+            // 총알 체크
             if (--m_curBullet < 0)
             {
                 m_curBullet = 0;
@@ -103,13 +104,18 @@ namespace FPS
                 return;
             }
 
+            Debug.Log("Attack!!");
+
+            // Raycast
+            Camera camera = GameManager.Instance.Player.PlayerCamera;
+            Vector3 position = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0);
+            GameManager.Instance.ShotCollision(camera.ScreenPointToRay(position), m_distance, m_damage);
+
             m_attackEvent.Invoke();
 
             // Play fx.
             m_audioSource.PlayOneShot(m_shotSoundClip);
-            PlayVFX();
-
-            Debug.Log("Attack!!");
+            GameManager.Instance.PlayVFX(m_particlePrefab, m_particlePooling, m_muzzle, Vector3.zero, Quaternion.identity);
         }
 
         private bool AnimationCompare(string animationName)
@@ -130,34 +136,6 @@ namespace FPS
             }
 
             callback?.Invoke();
-        }
-
-        private void PlayVFX()
-        {
-            if (m_particlePrefab == null) return;
-
-            ParticleSystem currentParticle = null;
-
-            foreach (var particle in m_particlePooling)
-            {
-                if (!particle.isPlaying)
-                {
-                    currentParticle = particle;
-
-                    break;
-                }
-            }
-
-            if (currentParticle == null)
-            {
-                currentParticle = Instantiate(m_particlePrefab, m_muzzle);
-                currentParticle.transform.localPosition = Vector3.zero;
-                currentParticle.transform.localRotation = Quaternion.identity;
-
-                m_particlePooling.Add(currentParticle);
-            }
-
-            currentParticle.Play();
         }
     }
 }

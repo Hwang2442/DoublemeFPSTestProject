@@ -7,6 +7,7 @@ namespace FPS
     public class Enemy : MonoBehaviour
     {
         [SerializeField] Animator m_animator;
+        [SerializeField] Health m_health;
         [SerializeField] Transform m_aimPoint;
         [SerializeField] UnityEngine.AI.NavMeshAgent m_navigation;
 
@@ -14,6 +15,9 @@ namespace FPS
         [SerializeField] float m_speed = 3;
         [SerializeField] float m_range = 5;
         [SerializeField] bool m_isAlert = false;
+
+        #region Properties
+
         public static EnemyManager Manager { get; set; }
 
         public bool Alert
@@ -30,12 +34,19 @@ namespace FPS
             }
         }
 
+        public Health Health => m_health;
+
+        #endregion
+
+
         private void Start()
         {
             m_navigation.speed = m_speed;
             m_navigation.stoppingDistance = m_range;
 
             Alert = true;
+
+            m_health.OnDamagedEvent.AddListener(Damaged);
         }
 
         private void Update()
@@ -74,6 +85,35 @@ namespace FPS
                         break;
                     }
                 }
+            }
+        }
+
+        private void Damaged()
+        {
+            // Dead
+            if (m_health.curHP <= 0)
+            {
+                m_animator.ResetTrigger("Run");
+                m_animator.ResetTrigger("Shoot");
+                m_animator.SetTrigger("Dead");
+
+                GetComponent<Collider>().enabled = false;
+                StartCoroutine(Co_DeadAnimation());
+            }
+        }
+
+        private IEnumerator Co_DeadAnimation()
+        {
+            float t = 0;
+
+            while (t < 1)
+            {
+                yield return null;
+
+                t += Time.deltaTime;
+                float x = Mathf.Lerp(0, -90, t);
+
+                transform.rotation = Quaternion.Euler(x, transform.eulerAngles.y, transform.eulerAngles.z);
             }
         }
     }

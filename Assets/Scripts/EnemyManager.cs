@@ -9,6 +9,10 @@ namespace FPS
         [SerializeField] Enemy m_enemyPrefab;
         [SerializeField] List<Enemy> m_enemies;
 
+        [Header("VFX")]
+        [SerializeField] ParticleSystem m_particlePrefab;
+        [SerializeField] List<ParticleSystem> m_particlePooling = new List<ParticleSystem>();
+
         #region Properties
 
         PlayerController Player => GameManager.Instance.Player;
@@ -39,6 +43,13 @@ namespace FPS
                     break;
                 }
             }
+        }
+
+        public void DamagedEnemy(Enemy enemy, RaycastHit hit, int damamge)
+        {
+            GameManager.Instance.PlayVFX(m_particlePrefab, m_particlePooling, transform, hit.point, Quaternion.LookRotation(hit.normal));
+
+            enemy.Health.OnDamaged(damamge);
         }
     }
 }
