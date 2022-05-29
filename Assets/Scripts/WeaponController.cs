@@ -69,12 +69,17 @@ namespace FPS
             m_animator.SetTrigger("Reloading");
             StartCoroutine(Co_WaitForAnimationComplete("Recharge", () =>
             {
-                m_curBullet = m_maxBullet;
+                RecoveryBullet(m_maxBullet - m_curBullet);
                 callback?.Invoke();
             }));
         }
 
         #endregion
+
+        public void RecoveryBullet(int amount)
+        {
+            m_curBullet = Mathf.Min(m_curBullet + amount, m_maxBullet);
+        }
 
         public void Swap(WeaponController weapon, UnityEngine.Events.UnityAction callback = null)
         {
