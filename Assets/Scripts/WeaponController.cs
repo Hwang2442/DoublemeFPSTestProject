@@ -20,7 +20,9 @@ namespace FPS
         [SerializeField] AudioClip m_shotSoundClip;
 
         [Header("VFX")]
-        [SerializeField] ParticleSystem m_particle;
+        [SerializeField] Transform m_muzzle;
+        [SerializeField] ParticleSystem m_particlePrefab;
+        [SerializeField] List<ParticleSystem> m_particlePooling;
 
         #region Properties
 
@@ -93,7 +95,9 @@ namespace FPS
                 return;
             }
 
+            // Play fx.
             m_audioSource.PlayOneShot(m_shotSoundClip);
+            PlayVFX();
 
             Debug.Log("Attack!!");
         }
@@ -116,6 +120,32 @@ namespace FPS
             }
 
             callback?.Invoke();
+        }
+
+        private void PlayVFX()
+        {
+            ParticleSystem currentParticle = null;
+
+            foreach (var particle in m_particlePooling)
+            {
+                if (!particle.isPlaying)
+                {
+                    currentParticle = particle;
+
+                    break;
+                }
+            }
+
+            if (currentParticle == null)
+            {
+                currentParticle = Instantiate(m_particlePrefab, m_muzzle);
+                currentParticle.transform.localPosition = Vector3.zero;
+                currentParticle.transform.localRotation = Quaternion.identity;
+
+                m_particlePooling.Add(currentParticle);
+            }
+
+            currentParticle.Play();
         }
     }
 }
