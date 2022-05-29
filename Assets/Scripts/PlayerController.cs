@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
+using UnityEngine.UI;
 
 namespace FPS
 {
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] Transform m_body;
+        [SerializeField] Health m_health;
 
         [Header("Camera settings")]
         [SerializeField] Camera m_camera;
@@ -23,6 +24,12 @@ namespace FPS
         [SerializeField] int m_curWeaponIndex = 0;
         [SerializeField] WeaponController[] m_weapons;
 
+        [Header("UI")]
+        [SerializeField] RectTransform m_crosshair;
+        [SerializeField] Text m_curHp;
+        [SerializeField] Text m_curWeaponInfo;
+        [SerializeField] Text m_bulletInfo;
+
         float m_xRotation = 0;
         Vector3 m_gravityVelocity;
 
@@ -34,9 +41,28 @@ namespace FPS
 
         #endregion
 
-        private void Awake()
+        private void Start()
         {
-            
+            m_curWeaponInfo.text = CurrentWeapon.WeaponName;
+            m_bulletInfo.text = string.Format("{0} / {1}", CurrentWeapon.CurBullet.ToString("00"), CurrentWeapon.MaxBullet.ToString("00"));
+            m_curHp.text = m_health.curHP.ToString();
+
+            foreach (var weapon in m_weapons)
+            {
+                weapon.AttackEvent.AddListener(() =>
+                {
+                    m_bulletInfo.text = string.Format("{0} / {1}", CurrentWeapon.CurBullet.ToString("00"), CurrentWeapon.MaxBullet.ToString("00"));
+                });
+            }
+
+            m_health.onRecoverEvent.AddListener(() =>
+            {
+                m_curHp.text = m_health.curHP.ToString();
+            });
+            m_health.OnDamagedEvent.AddListener(() =>
+            {
+                m_curHp.text = m_health.curHP.ToString();
+            });
         }
 
         private void Update()
@@ -68,7 +94,10 @@ namespace FPS
             // Reload
             if (Input.GetKeyDown(KeyCode.R))
             {
-                CurrentWeapon.PlayReloadAnimation();
+                CurrentWeapon.PlayReloadAnimation(() =>
+                {
+                    m_bulletInfo.text = string.Format("{0} / {1}", CurrentWeapon.CurBullet.ToString("00"), CurrentWeapon.MaxBullet.ToString("00"));
+                });
             }
 
             // Weapon change.

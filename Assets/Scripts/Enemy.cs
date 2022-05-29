@@ -55,14 +55,16 @@ namespace FPS
                 // 플레이어 위치 실시간 반영
                 m_navigation.destination = GameManager.Instance.Player.transform.position;
 
+                
+
                 yield return null;
                 yield return null;
+
+                
 
                 // 플레이어와의 거리 체크
                 if (m_navigation.remainingDistance <= m_navigation.stoppingDistance)
                 {
-                    Debug.Log(m_navigation.remainingDistance);
-
                     // 경로가 없거나 Agent의 이동이 0인 경우
                     if (!m_navigation.hasPath || m_navigation.velocity.sqrMagnitude <= 0)
                     {
