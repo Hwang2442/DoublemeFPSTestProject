@@ -19,6 +19,9 @@ namespace FPS
         [SerializeField] AudioSource m_audioSource;
         [SerializeField] AudioClip m_shotSoundClip;
 
+        [Header("VFX")]
+        [SerializeField] ParticleSystem m_particle;
+
         #region Properties
 
         public KeyCode InstallKey => m_installKey;
@@ -63,12 +66,22 @@ namespace FPS
             }));
         }
 
+        #endregion
+
+        public void Swap(WeaponController weapon)
+        {
+            m_animator.SetTrigger("WeaponChange");
+            StartCoroutine(Co_WaitForAnimationComplete("Hide", () =>
+            {
+                gameObject.SetActive(false);
+                weapon.gameObject.SetActive(true);
+            }));
+        }
+
         public void Aiming(bool active)
         {
             m_animator.SetBool("Aiming", active);
         }
-
-        #endregion
 
         public void Attack()
         {

@@ -9,6 +9,7 @@ namespace FPS
         static GameManager m_instance;
 
         [SerializeField] PlayerController m_player;
+        [SerializeField] EnemyManager m_enemyManager;
 
         #region Properties
 

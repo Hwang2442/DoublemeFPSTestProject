@@ -30,6 +30,8 @@ namespace FPS
 
         public WeaponController CurrentWeapon => m_weapons[m_curWeaponIndex];
 
+        public Camera PlayerCamera => m_camera;
+
         #endregion
 
         private void Awake()
@@ -70,11 +72,12 @@ namespace FPS
             }
 
             // Weapon change.
-            foreach (var weapon in m_weapons)
+            for (int i = 0; i < m_weapons.Length; i++)
             {
-                if (Input.GetKeyDown(weapon.InstallKey))
+                if (m_curWeaponIndex != i && Input.GetKeyDown(m_weapons[i].InstallKey))
                 {
-
+                    CurrentWeapon.Swap(m_weapons[i]);
+                    m_curWeaponIndex = i;
 
                     break;
                 }
