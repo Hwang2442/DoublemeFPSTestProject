@@ -76,9 +76,10 @@ namespace FPS
 
         #endregion
 
-        public void RecoveryBullet(int amount)
+        public void RecoveryBullet(int amount, UnityEngine.Events.UnityAction callback = null)
         {
             m_curBullet = Mathf.Min(m_curBullet + amount, m_maxBullet);
+            callback?.Invoke();
         }
 
         public void Swap(WeaponController weapon, UnityEngine.Events.UnityAction callback = null)

@@ -49,7 +49,12 @@ namespace FPS
 
                         if (player.CurrentWeapon.CurBullet < player.CurrentWeapon.MaxBullet)
                         {
-                            player.CurrentWeapon.RecoveryBullet(m_amount);
+                            player.CurrentWeapon.RecoveryBullet(m_amount, () =>
+                            {
+                                player.BulletInfo.text = string.Format("{0} / {1}", player.CurrentWeapon.CurBullet.ToString("00"), player.CurrentWeapon.MaxBullet.ToString("00"));
+                            });
+
+                            Destroy(gameObject);
                         }
                     }
                     break;

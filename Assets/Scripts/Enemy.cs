@@ -85,12 +85,19 @@ namespace FPS
                 yield return null;
 
                 // 플레이거 거리 체크
-                if (Vector2.SqrMagnitude(transform.position - player.transform.position) > (m_range * m_range))
+                if (Vector3.SqrMagnitude(transform.position - player.transform.position) > m_range * m_range)
                 {
                     // 플레이어 추격 완료까지 대기
                     yield return Co_ChasingPlayer();
                 }
-
+                else
+                {
+                    if (!m_animator.GetBool("Shoot"))
+                    {
+                        m_animator.SetTrigger("Shoot");
+                    }
+                }
+                
                 transform.LookAt(player.transform, Vector3.up);
             }
         }
@@ -98,6 +105,8 @@ namespace FPS
         private IEnumerator Co_ChasingPlayer()
         {
             m_navigation.SetDestination(GameManager.Instance.Player.transform.position);
+
+            m_animator.SetBool("Shoot", false);
             m_animator.SetTrigger("Run");
 
             while (true)
@@ -116,7 +125,7 @@ namespace FPS
                     if (!m_navigation.hasPath || m_navigation.velocity.sqrMagnitude <= 0)
                     {
                         // Navigation complete
-                        m_animator.SetTrigger("Shoot");
+                        m_animator.SetBool("Shoot", true);
 
                         break;
                     }
@@ -139,6 +148,8 @@ namespace FPS
 
                 transform.rotation = Quaternion.Euler(x, transform.eulerAngles.y, transform.eulerAngles.z);
             }
+
+            Manager.DestroyEnemy(this);
         }
 
         private void OnDrawGizmos()

@@ -39,6 +39,8 @@ namespace FPS
 
         public Camera PlayerCamera => m_camera;
 
+        public Text BulletInfo => m_bulletInfo;
+
         #endregion
 
         private void Start()

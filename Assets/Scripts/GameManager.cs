@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System.IO;
+using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,6 +22,8 @@ namespace FPS
         [Header("UI")]
         [SerializeField] Text m_recordTime;
         [SerializeField] Text m_bestTime;
+        [SerializeField] RectTransform m_startPanel;
+        [SerializeField] RectTransform m_completePanel;
 
         #region Properties
 
@@ -27,11 +31,7 @@ namespace FPS
 
         public PlayerController Player => m_player;
 
-
-
         #endregion
-
-
 
         private void Awake()
         {
@@ -47,18 +47,48 @@ namespace FPS
                 }
             }
 
+            Player.enabled = false;
+
+            LoadRecord();
+
+            m_startPanel.gameObject.SetActive(true);
+            m_completePanel.gameObject.SetActive(false);
+        }
+
+        #region Game start and end.
+
+        public void GameStart()
+        {
+            m_startPanel.gameObject.SetActive(false);
+
+            Player.enabled = true;
+            Cursor.lockState = CursorLockMode.Locked;
+
             m_timeRecorder.StartRecording((time) =>
             {
                 int second = Mathf.FloorToInt(time);
 
                 m_recordTime.text = string.Format("{0}:{1}", (second / 60).ToString("00"), (second % 60).ToString("00"));
             });
+
+            m_enemyManager.EnemyCountChanged.AddListener((count) =>
+            { 
+                if (count == 0)
+                {
+                    Cursor.lockState = CursorLockMode.None;
+                    Player.enabled = false;
+
+                    m_timeRecorder.StopRecording();
+                    SaveRecord();
+
+                    m_completePanel.gameObject.SetActive(true);
+                }
+            });
         }
 
-        private void Start()
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        #endregion
+
+        #region Utilities
 
         public void ShotCollision(Ray ray, float distance, int damage)
         {
@@ -112,5 +142,63 @@ namespace FPS
             currentParticle.transform.localRotation = localRotation;
             currentParticle.Play();
         }
+
+        public void OnClickRestart()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        }
+
+        #endregion
+
+        #region Record
+
+        private void LoadRecord()
+        {
+            string path = Path.Combine(Application.persistentDataPath, "Recording.json");
+
+            if (File.Exists(path))
+            {
+                Recording[] recordings = JsonUtility.FromJson<Recording[]>(File.ReadAllText(path));
+
+                int m = recordings.Last().second / 60;
+                int s = recordings.Last().second % 60;
+
+                m_bestTime.text = string.Format("{0}:{1}", m.ToString("00"), s.ToString("00"));
+            }
+        }
+
+        private void SaveRecord()
+        {
+            string path = Path.Combine(Application.persistentDataPath, "Recording.json");
+
+            Recording recording = new Recording();
+            recording.time = System.DateTime.Now.ToString();
+            recording.second = Mathf.FloorToInt(m_timeRecorder.RecordingTime);
+
+            List<Recording> recordings = null;
+
+            if (!File.Exists(path))
+            {
+                recordings = new List<Recording>();
+                recordings.Add(recording);
+
+                return;
+            }
+            else
+            {
+                recordings = JsonUtility.FromJson<List<Recording>>(File.ReadAllText(path));
+                recordings.Add(recording);
+                recordings.Sort((a, b) => { return a.second.CompareTo(b.second); });
+            }
+
+            File.WriteAllText(path, JsonUtility.ToJson(recordings));
+
+            int m = recordings.Last().second / 60;
+            int s = recordings.Last().second % 60;
+
+            m_bestTime.text = string.Format("{0}:{1}", m.ToString("00"), s.ToString("00"));
+        }
+
+        #endregion
     }
 }
