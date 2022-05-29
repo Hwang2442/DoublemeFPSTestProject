@@ -158,10 +158,10 @@ namespace FPS
 
             if (File.Exists(path))
             {
-                Recording[] recordings = JsonUtility.FromJson<Recording[]>(File.ReadAllText(path));
+                Recording recording = JsonUtility.FromJson<Recording>(File.ReadAllText(path));
 
-                int m = recordings.Last().second / 60;
-                int s = recordings.Last().second % 60;
+                int m = recording.second / 60;
+                int s = recording.second % 60;
 
                 m_bestTime.text = string.Format("{0}:{1}", m.ToString("00"), s.ToString("00"));
             }
@@ -175,26 +175,20 @@ namespace FPS
             recording.time = System.DateTime.Now.ToString();
             recording.second = Mathf.FloorToInt(m_timeRecorder.RecordingTime);
 
-            List<Recording> recordings = null;
-
-            if (!File.Exists(path))
+            if (File.Exists(path))
             {
-                recordings = new List<Recording>();
-                recordings.Add(recording);
+                Recording oldRecording = JsonUtility.FromJson<Recording>(File.ReadAllText(path));
 
-                return;
-            }
-            else
-            {
-                recordings = JsonUtility.FromJson<List<Recording>>(File.ReadAllText(path));
-                recordings.Add(recording);
-                recordings.Sort((a, b) => { return a.second.CompareTo(b.second); });
+                if (oldRecording.second < recording.second)
+                {
+                    recording = oldRecording;
+                }
             }
 
-            File.WriteAllText(path, JsonUtility.ToJson(recordings));
+            File.WriteAllText(path, JsonUtility.ToJson(recording));
 
-            int m = recordings.Last().second / 60;
-            int s = recordings.Last().second % 60;
+            int m = recording.second / 60;
+            int s = recording.second % 60;
 
             m_bestTime.text = string.Format("{0}:{1}", m.ToString("00"), s.ToString("00"));
         }
