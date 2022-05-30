@@ -47,6 +47,11 @@ namespace FPS
                 }
             }
 
+            if (Player == null)
+            {
+                m_player = GameObject.FindWithTag("Player").GetComponent<PlayerController>();
+            }
+
             Player.enabled = false;
 
             LoadRecord();
@@ -64,6 +69,7 @@ namespace FPS
             Player.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
 
+            // 시간 기록 시작 및 UI 업데이트
             m_timeRecorder.StartRecording((time) =>
             {
                 int second = Mathf.FloorToInt(time);
@@ -71,17 +77,23 @@ namespace FPS
                 m_recordTime.text = string.Format("{0}:{1}", (second / 60).ToString("00"), (second % 60).ToString("00"));
             });
 
+            // 에너미 숫자 변동 시
             m_enemyManager.EnemyCountChanged.AddListener((count) =>
             { 
+                // 에너미 모두 사망
                 if (count == 0)
                 {
-                    Cursor.lockState = CursorLockMode.None;
-                    Player.enabled = false;
+                    GameComplete();
+                }
+            });
 
-                    m_timeRecorder.StopRecording();
-                    SaveRecord();
-
-                    m_completePanel.gameObject.SetActive(true);
+            // 플레이어가 죽을 경우
+            Health playerHealth = Player.GetComponent<Health>();
+            playerHealth.OnDamagedEvent.AddListener(() =>
+            {
+                if (playerHealth.curHP <= 0)
+                { 
+                    GameComplete();
                 }
             });
         }
@@ -89,6 +101,17 @@ namespace FPS
         #endregion
 
         #region Utilities
+
+        private void GameComplete()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Player.enabled = false;
+
+            m_timeRecorder.StopRecording();
+            SaveRecord();
+
+            m_completePanel.gameObject.SetActive(true);
+        }
 
         public void ShotCollision(Ray ray, float distance, int damage)
         {

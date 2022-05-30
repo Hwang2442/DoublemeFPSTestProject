@@ -32,7 +32,7 @@ namespace FPS
             {
                 if (value)
                 {
-                    StartCoroutine(Co_EnemyUpdate());
+                    
                 }
 
                 m_isAlert = value;
@@ -50,6 +50,7 @@ namespace FPS
             m_navigation.stoppingDistance = m_range;
 
             m_health.OnDamagedEvent.AddListener(Damaged);
+            StartCoroutine(Co_EnemyUpdate());
         }
 
         private void Damaged()
@@ -84,21 +85,37 @@ namespace FPS
             {
                 yield return null;
 
-                // 플레이거 거리 체크
-                if (Vector3.SqrMagnitude(transform.position - player.transform.position) > m_range * m_range)
+                if (!m_isAlert)
                 {
-                    // 플레이어 추격 완료까지 대기
-                    yield return Co_ChasingPlayer();
+                    if (Vector3.SqrMagnitude(transform.position - player.transform.position) <= m_range * m_range)
+                    {
+                        Vector3 diff = transform.position - player.transform.position;
+
+                        // 플레이어 발견 여부
+                        if (Vector3.Dot(transform.forward, diff) < 0)
+                        {
+                            Alert = true;
+                        }
+                    }
                 }
                 else
                 {
-                    if (!m_animator.GetBool("Shoot"))
+                    // 플레이거 거리 체크
+                    if (Vector3.SqrMagnitude(transform.position - player.transform.position) > m_range * m_range)
                     {
-                        m_animator.SetTrigger("Shoot");
+                        // 플레이어 추격 완료까지 대기
+                        yield return Co_ChasingPlayer();
                     }
+                    else
+                    {
+                        if (!m_animator.GetBool("Shoot"))
+                        {
+                            m_animator.SetTrigger("Shoot");
+                        }
+                    }
+
+                    transform.LookAt(player.transform, Vector3.up);
                 }
-                
-                transform.LookAt(player.transform, Vector3.up);
             }
         }
 
