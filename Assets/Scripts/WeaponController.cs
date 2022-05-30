@@ -13,7 +13,7 @@ namespace FPS
         [Header("Status")]
         [SerializeField] int m_damage;      // 데미지
         [SerializeField] float m_distance;  // 사거리
-        [SerializeField] int m_maxBullet;   // 최대 총알 수 (-1 == infinity)
+        [SerializeField] int m_maxBullet;   // 최대 총알 수 (0 == infinity)
         [SerializeField] int m_curBullet;   // 현재 총알 수
 
         [Header("Sounds")]
@@ -37,6 +37,7 @@ namespace FPS
         public bool IsWalking => AnimationCompare("Walk");
         public bool IsRunning => AnimationCompare("Run");
         public bool IsReloading => AnimationCompare("Recharge");
+        public bool IsSwapping => AnimationCompare("Hide") || AnimationCompare("Get");
 
         public int MaxBullet => m_maxBullet;
         public int CurBullet => m_curBullet;
@@ -49,17 +50,23 @@ namespace FPS
 
         public void PlayWalkAniamtion(float velocity)
         {
-            m_animator.SetFloat("Walk", velocity);
+            if (gameObject.activeSelf)
+            {
+                m_animator.SetFloat("Walk", velocity);
+            }
         }
 
         public void PlayRunAnimation(bool active)
         {
-            m_animator.SetBool("Run", active);
+            if (gameObject.activeSelf)
+            {
+                m_animator.SetBool("Run", active);
+            }
         }
 
         public void PlayAttackAnimation(bool active)
         {
-            m_animator.SetBool("Attack", m_curBullet > 0 ? active : false);
+            m_animator.SetBool("Attack", (m_curBullet > 0 || m_maxBullet <= 0) ? active : false);
         }
 
         public void PlayReloadAnimation(UnityEngine.Events.UnityAction callback = null)
@@ -85,10 +92,10 @@ namespace FPS
         public void Swap(WeaponController weapon, UnityEngine.Events.UnityAction callback = null)
         {
             m_animator.SetTrigger("WeaponChange");
-            StartCoroutine(Co_WaitForAnimationComplete("Hide", () =>
+            StartCoroutine(Co_WaitForAnimationComplete(() =>
             {
-                gameObject.SetActive(false);
                 weapon.gameObject.SetActive(true);
+                gameObject.SetActive(false);
 
                 callback?.Invoke();
             }));
@@ -101,8 +108,13 @@ namespace FPS
 
         public void Attack()
         {
+            if (m_maxBullet > 0)
+            {
+                m_curBullet--;
+            }
+
             // 총알 체크
-            if (--m_curBullet < 0)
+            if (m_curBullet < 0)
             {
                 m_curBullet = 0;
                 m_animator.SetBool("Attack", false);
@@ -120,8 +132,14 @@ namespace FPS
             m_attackEvent.Invoke();
 
             // Play fx.
-            m_audioSource.PlayOneShot(m_shotSoundClip);
-            GameManager.Instance.PlayVFX(m_particlePrefab, m_particlePooling, m_muzzle, Vector3.zero, Quaternion.identity);
+            if (m_shotSoundClip != null && m_audioSource != null)
+            {
+                m_audioSource.PlayOneShot(m_shotSoundClip);
+            }
+            if (m_particlePrefab != null)
+            {
+                GameManager.Instance.PlayVFX(m_particlePrefab, m_particlePooling, m_muzzle, Vector3.zero, Quaternion.identity);
+            }
         }
 
         private bool AnimationCompare(string animationName)
@@ -129,8 +147,38 @@ namespace FPS
             return m_animator.GetCurrentAnimatorStateInfo(0).IsName(animationName);
         }
 
+        private bool AnimationComplete()
+        {
+            return m_animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1;
+        }
+
+        private IEnumerator Co_WaitForAnimationComplete(UnityEngine.Events.UnityAction callback = null)
+        {
+            yield return new WaitForSeconds(0.25f);
+
+            while (true)
+            {
+                yield return null;
+
+                if (AnimationComplete())
+                {
+                    break;
+                }
+            }
+
+            callback?.Invoke();
+        }
+
+        /// <summary>
+        /// 애니메이션 완료 대기
+        /// </summary>
+        /// <param name="animationName">확인할 애니메이션 이름</param>
+        /// <param name="callback">완료 후 콜백</param>
+        /// <returns></returns>
         private IEnumerator Co_WaitForAnimationComplete(string animationName, UnityEngine.Events.UnityAction callback = null)
         {
+            yield return new WaitForSeconds(0.25f);
+
             while (true)
             {
                 yield return null;

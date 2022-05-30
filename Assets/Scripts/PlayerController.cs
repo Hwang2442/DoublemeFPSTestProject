@@ -107,7 +107,11 @@ namespace FPS
             {
                 if (m_curWeaponIndex != i && Input.GetKeyDown(m_weapons[i].InstallKey))
                 {
-                    CurrentWeapon.Swap(m_weapons[i]);
+                    CurrentWeapon.Swap(m_weapons[i], () =>
+                    {
+                        m_bulletInfo.text = string.Format("{0} / {1}", CurrentWeapon.CurBullet.ToString("00"), CurrentWeapon.MaxBullet.ToString("00"));
+                    });
+
                     m_curWeaponIndex = i;
 
                     break;
