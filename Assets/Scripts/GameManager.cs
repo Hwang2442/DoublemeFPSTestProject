@@ -83,7 +83,7 @@ namespace FPS
                 // 에너미 모두 사망
                 if (count == 0)
                 {
-                    GameComplete();
+                    GameComplete(true);
                 }
             });
 
@@ -93,7 +93,7 @@ namespace FPS
             {
                 if (playerHealth.curHP <= 0)
                 { 
-                    GameComplete();
+                    GameComplete(false);
                 }
             });
         }
@@ -102,13 +102,17 @@ namespace FPS
 
         #region Utilities
 
-        private void GameComplete()
+        private void GameComplete(bool clear)
         {
             Cursor.lockState = CursorLockMode.None;
             Player.enabled = false;
 
             m_timeRecorder.StopRecording();
-            SaveRecord();
+
+            if (clear)
+            {
+                SaveRecord();
+            }
 
             m_completePanel.gameObject.SetActive(true);
         }

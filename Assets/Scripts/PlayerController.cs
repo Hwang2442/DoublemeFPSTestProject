@@ -133,12 +133,14 @@ namespace FPS
         private void Movement()
         {
             bool isGrounded = GroundCheck();
-            bool isRun = Input.GetKey(KeyCode.LeftShift);
+            bool isRun = Input.GetKey(KeyCode.LeftShift) && (CurrentWeapon.IsWalking || CurrentWeapon.IsRunning);
 
             if (isGrounded && m_gravityVelocity.y < 0) m_gravityVelocity.y = 0;
 
             float x = Input.GetAxis("Horizontal");
             float z = Input.GetAxis("Vertical");
+
+            isRun = isRun && z > 0;
 
             // Play walk or run animation.
             CurrentWeapon.PlayWalkAniamtion(Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)));
