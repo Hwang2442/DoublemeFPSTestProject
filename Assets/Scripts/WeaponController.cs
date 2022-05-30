@@ -48,6 +48,10 @@ namespace FPS
 
         #region Play animations
 
+        /// <summary>
+        /// 걷는 애니메이션 재생
+        /// </summary>
+        /// <param name="velocity">이동량</param>
         public void PlayWalkAniamtion(float velocity)
         {
             if (gameObject.activeSelf)
@@ -56,6 +60,10 @@ namespace FPS
             }
         }
 
+        /// <summary>
+        /// 달리기 애니메이션 재생
+        /// </summary>
+        /// <param name="active"></param>
         public void PlayRunAnimation(bool active)
         {
             if (gameObject.activeSelf)
@@ -64,13 +72,23 @@ namespace FPS
             }
         }
 
+        /// <summary>
+        /// 공격 애니메이션 재생
+        /// </summary>
+        /// <param name="active"></param>
         public void PlayAttackAnimation(bool active)
         {
+            // 총알 갯수 확인 후 재생 여부 결정
             m_animator.SetBool("Attack", (m_curBullet > 0 || m_maxBullet <= 0) ? active : false);
         }
 
+        /// <summary>
+        /// 장전 애니메이션 재생
+        /// </summary>
+        /// <param name="callback"></param>
         public void PlayReloadAnimation(UnityEngine.Events.UnityAction callback = null)
         {
+            // 현재 총알이 모두 채워져있는 경우 장전 불필요
             if (m_curBullet >= m_maxBullet) return;
 
             m_animator.SetTrigger("Reloading");
@@ -83,12 +101,22 @@ namespace FPS
 
         #endregion
 
+        /// <summary>
+        /// 총알 충전
+        /// </summary>
+        /// <param name="amount">충전할 양</param>
+        /// <param name="callback">충전 시 호출할 이벤트</param>
         public void RecoveryBullet(int amount, UnityEngine.Events.UnityAction callback = null)
         {
             m_curBullet = Mathf.Min(m_curBullet + amount, m_maxBullet);
             callback?.Invoke();
         }
 
+        /// <summary>
+        /// 무기 교체
+        /// </summary>
+        /// <param name="weapon">교체할 무기</param>
+        /// <param name="callback">교체 완료 후 호출할 이벤트</param>
         public void Swap(WeaponController weapon, UnityEngine.Events.UnityAction callback = null)
         {
             m_animator.SetTrigger("WeaponChange");
@@ -108,6 +136,7 @@ namespace FPS
 
         public void Attack()
         {
+            // 총알 제한이 있는 무기
             if (m_maxBullet > 0)
             {
                 m_curBullet--;

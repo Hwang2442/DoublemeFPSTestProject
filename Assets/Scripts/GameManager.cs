@@ -100,8 +100,6 @@ namespace FPS
 
         #endregion
 
-        #region Utilities
-
         private void GameComplete(bool clear)
         {
             Cursor.lockState = CursorLockMode.None;
@@ -117,6 +115,14 @@ namespace FPS
             m_completePanel.gameObject.SetActive(true);
         }
 
+        #region Utilities
+
+        /// <summary>
+        /// 플레이어 및 에너미 공격 관리
+        /// </summary>
+        /// <param name="ray">발사된 레이</param>
+        /// <param name="distance">사정거리</param>
+        /// <param name="damage">데미지</param>
         public void ShotCollision(Ray ray, float distance, int damage)
         {
             RaycastHit hit;
@@ -125,14 +131,17 @@ namespace FPS
             {
                 Debug.Log(hit.transform.tag);
 
+                // 에너미 공격 적중 => 플레이어
                 if (hit.transform.tag == "Player")
                 {
                     hit.transform.GetComponent<Health>().OnDamaged(damage);
                 }
+                // 플레이어 공격 적중 => 에너미
                 else if (hit.transform.tag == "Enemy")
                 {
                     m_enemyManager.DamagedEnemy(hit.transform.GetComponent<Enemy>(), hit, damage);
                 }
+                // 플레이어 공격 적중 => 사물
                 else
                 {
                     Vector3 position = hit.point;
@@ -143,14 +152,24 @@ namespace FPS
             }
         }
 
+        /// <summary>
+        /// 이펙트 재생 함수
+        /// </summary>
+        /// <param name="origin">프리팹 원본</param>
+        /// <param name="pooling">풀링용 리스트</param>
+        /// <param name="parent">인스펙터 정리용 상위오브젝트</param>
+        /// <param name="localPosition"></param>
+        /// <param name="localRotation"></param>
         public void PlayVFX(ParticleSystem origin, List<ParticleSystem> pooling, Transform parent, Vector3 localPosition, Quaternion localRotation)
         {
+            // 이펙트가 없으면 재생 X.
             if (m_particlePrefab == null) return;
 
             ParticleSystem currentParticle = null;
 
             foreach (var particle in pooling)
             {
+                // 풀링 내에서 현재 진행중이지 않은 이펙트 검색
                 if (!particle.isPlaying)
                 {
                     currentParticle = particle;
@@ -159,6 +178,7 @@ namespace FPS
                 }
             }
 
+            // 이펙트가 부족하면 생성한 뒤 풀링 추가
             if (currentParticle == null)
             {
                 currentParticle = Instantiate(origin, parent);
