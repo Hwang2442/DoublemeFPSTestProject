@@ -60,6 +60,19 @@ namespace FPS
             m_completePanel.gameObject.SetActive(false);
         }
 
+        private void Update()
+        {
+            // 게임 종료
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            }
+        }
+
         #region Game start and end.
 
         public void GameStart()
